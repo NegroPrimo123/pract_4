@@ -1,0 +1,127 @@
+using System;
+using Microsoft.Data.SqlClient;
+using System.Collections.Generic;
+
+public class User
+{
+    public int Id { get; set; }
+    public string Firstname { get; set; }
+    public string Username { get; set; }
+    public string Password { get; set; }
+    public int Age { get; set; }
+}
+
+public class Program
+{
+    static string connectionString = "Server=your_server;Database=your_database;User Id=your_user;Password=your_password;TrustServerCertificate=true;";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine("Работа с таблицей Users.");
+        Console.WriteLine("Выберите действие:");
+        Console.WriteLine("1) Посмотреть все записи");
+        Console.WriteLine("2) Добавить нового пользователя");
+        Console.WriteLine("3) Обновить существующего пользователя");
+        Console.WriteLine("4) Удалить существующего пользователя");
+        Console.WriteLine("5) Авторизоваться в системе");
+
+        int choice = int.Parse(Console.ReadLine());
+
+        switch (choice)
+        {
+            case 1:
+                ShowAllRecords();
+                break;
+            case 2:
+                AddNewUser();
+                break;
+            case 3:
+                UpdateExistingUser();
+                break;
+            case 4:
+                DeleteExistingUser();
+                break;
+            case 5:
+                AuthorizeInSystem();
+                break;
+            default:
+                Console.WriteLine("Неверный выбор. Пожалуйста, выберите снова.");
+                break;
+        }
+
+        Console.ReadLine();
+    }
+
+    static void ShowAllRecords()
+    {
+        using (SqlConnection connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            SqlCommand command = new SqlCommand("SELECT * FROM Users", connection);
+            SqlDataReader reader = command.ExecuteReader();
+
+            Console.WriteLine("Список пользователей:");
+            Console.WriteLine("**ID    Firstname    Username    Password    Age**");
+
+            while (reader.Read())
+            {
+                Console.WriteLine($"{reader["Id"]}.    {reader["Firstname"]}        {reader["Username"]}        ********    {reader["Age"]}");
+            }
+
+            Console.WriteLine("Нажмите на любую клавишу чтобы вернуться.");
+            Console.ReadLine();
+        }
+    }
+
+    static void AddNewUser()
+    {
+        Console.WriteLine("Добавление пользователя:");
+        Console.WriteLine("Введите следующие данные через запятую \",\"");
+        Console.WriteLine("**Firstname,Username,Password,Age");
+        Console.WriteLine("Пример: Иван,Vanya,12345,50");
+
+        string input = Console.ReadLine();
+
+        string[] parts = input.Split(',');
+
+        if (parts.Length != 4)
+        {
+            Console.WriteLine("Неверный формат, повторите еще раз");
+            AddNewUser();
+            return;
+        }
+
+        string firstname = parts[0].Trim();
+        string username = parts[1].Trim();
+        string password = parts[2].Trim();
+        int age = int.Parse(parts[3].Trim());
+
+        using (SqlConnection connection = new SqlConnection(connectionString))
+        {
+            connection.Open();
+            SqlCommand command = new SqlCommand("INSERT INTO Users (Firstname, Username, Password, Age) VALUES (@firstname, @username, @password, @age)", connection);
+            command.Parameters.AddWithValue("@firstname", firstname);
+            command.Parameters.AddWithValue("@username", username);
+            command.Parameters.AddWithValue("@password", password);
+            command.Parameters.AddWithValue("@age", age);
+            command.ExecuteNonQuery();
+
+            Console.WriteLine("Добавление успешно! Его Id - " + command.ExecuteScalar());
+        }
+
+        Console.WriteLine("Нажмите на любую клавишу чтобы вернуться.");
+        Console.ReadLine();
+    }
+
+    static void UpdateExistingUser()
+    {
+    }
+
+    static void DeleteExistingUser()
+    {
+    }
+
+    static void AuthorizeInSystem()
+    {
+    }
+}
